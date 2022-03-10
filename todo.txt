@@ -15,3 +15,16 @@ Accept USDC, WETH, WBTC payments (we swap inside the smart contract)
 		3. call addLiquidity from beefy contract, send curveLP tokens and get beefyLP tokens back
 					
 		- removeFromPoolsAndAddtoContract()
+
+
+ML model:
+
+Person A deposits today (1K) -> After a week the values 1.1K
+Person B after a week deposits (1K) -> 
+
+1 - Deposit / withdraw to contract (and manage the thing above about when people deposit at different times)
+2 - Contract has different tokens (which can trade / allocate)
+3 - Contract can swap tokens using decentralized exchanges (Uniswap)
+4 - Python scripts calls function of deeplearning then passes params to smart contract to swap tokens
+5 - As soon as person deposits, buy corresponding token. If allocation is 100% BTC, follow current allocation
+6 - Test
