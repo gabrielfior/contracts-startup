@@ -1,0 +1,5 @@
+**/node_modules
+
+# avoid committing Hardhat outputs
+**/artifacts/
+**/cache/
