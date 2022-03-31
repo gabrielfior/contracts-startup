@@ -1,1 +1,8 @@
 simple-app/secrets.json
+
+**/node_modules
+
+# avoid committing Hardhat outputs
+**/artifacts/
+**/cache/
+secrets.json

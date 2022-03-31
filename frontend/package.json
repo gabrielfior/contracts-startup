@@ -13,8 +13,6 @@
     "@web3-react/core": "^6.1.9",
     "@web3-react/injected-connector": "^6.0.7",
     "crypto": "^1.0.1",
-    "fomantic-ui": "^2.8.8",
-    "fomantic-ui-css": "^2.8.8",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",

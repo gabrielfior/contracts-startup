@@ -1,5 +1,4 @@
 import React from 'react';
-import 'fomantic-ui-css/semantic.css';
 import * as material from '@mui/material';
 import web3 from './web3';
 import DAI from './DAI';
@@ -7,7 +6,6 @@ import WETH9 from './WETH9';
 import ApproveSpend from './ApproveSpend';
 import { ethers } from "ethers";
 import CssBaseline from '@mui/material/CssBaseline';
-import { LoadingButton } from '@mui/lab';
 
 
 class App extends React.Component {
@@ -21,7 +19,6 @@ class App extends React.Component {
     daiNewAllowance: '',
     daiDecimals: '',
     daiToSend: '',
-    loading: false,
     wethBalanceAccount: '',
     wethBalanceContract: '',
     wethAllowance: '',
@@ -218,33 +215,66 @@ class App extends React.Component {
         <br />
         {*/}
 
-        <material.TextField id="outlined-basic" label="DAI to send (eth units)" variant="outlined"
-          onChange={(e) => this.setState({ daiToSend: e.target.value })}
-          value={this.state.daiToSend}
-        />
-        <LoadingButton loading={this.state.loading} variant="contained"
-          disabled={!this.state.daiToSend}
-          onClick={this.depositDAIToContract}
-        >Transfer DAI to contract</LoadingButton>
+        <material.Box
+          component="form"
+          sx={{
+            '& > :not(style)': { m: 0.5, width: '300px', height: '50px' },
+          }}
+          noValidate
+          autoComplete="off"
+        >
+          <material.TextField size='small'
+          id="outlined-basic" label="DAI to send (eth units)" variant="outlined"
+            onChange={(e) => this.setState({ daiToSend: e.target.value })}
+            value={this.state.daiToSend}
+          />
+          <material.Button variant="contained" size='small'
+            disabled={!this.state.daiToSend}
+            onClick={this.depositDAIToContract}
+          >Transfer DAI to contract</material.Button>
 
-        
-        <br />
+        </material.Box>
 
-        <material.Button onClick={this.swapAllDaiForWETH9}
-          variant="contained"
-        >Swap all DAI for WETH9</material.Button>
-        <material.Button onClick={this.swapAllWETH9ForDAI}
-          variant="contained"
-        >Swap all WETH9 for DAI</material.Button>
+        <material.Box
+          component="form"
+          sx={{
+            '& > :not(style)': { m: 0.5, width: '300px', height: '50px' },
+          }}
+          noValidate
+          autoComplete="off"
+        >
+        </material.Box>
 
-        <br />
-        <br />
 
-        <material.Button variant="contained"
-          onClick={this.withdrawAllDAI}>Withdraw all DAI</material.Button>
+        <material.Box sx={{ m: 1, p: 1 }}>
+          <material.Grid container spacing={2}>
+            <material.Grid item xs={6}>
+              <material.Button size='large' onClick={this.swapAllDaiForWETH9}
+                variant="contained"
+              >Swap all DAI for WETH9</material.Button>
+            </material.Grid>
+            <material.Grid item xs={6}>
+              <material.Button size='large' onClick={this.swapAllWETH9ForDAI}
+                variant="contained"
+              >Swap all WETH9 for DAI</material.Button>
+            </material.Grid>
+            <material.Grid item xs={6}>
+              <material.Button size='large' variant="contained"
+                onClick={this.withdrawAllDAI}>Withdraw all DAI</material.Button>
+            </material.Grid>
+            <material.Grid item xs={6}>
+              <material.Button size='large' variant="contained"
+                onClick={this.withdrawAllWETH9}>Withdraw all WETH9</material.Button>
 
-        <material.Button variant="contained"
-          onClick={this.withdrawAllWETH9}>Withdraw all WETH9</material.Button>
+            </material.Grid>
+          </material.Grid>
+        </material.Box>
+
+
+
+
+
+
 
         <material.Divider>Contracts</material.Divider>
 
@@ -254,18 +284,18 @@ class App extends React.Component {
         <material.Divider>DAI</material.Divider>
 
         daiApprovedInContract {String(this.state.daiApprovedInContract)} <br />
-        daiAllowance {this.state.daiAllowance / divisorDaoDecimals} DAI <br />
-        balance account {this.state.daiBalanceAccount / divisorDaoDecimals} DAI <br />
-        balance contract {this.state.daiBalanceContract / divisorDaoDecimals} DAI <br />
+        daiAllowance {this.state.daiAllowance / divisorDaoDecimals} DAI < br />
+        balance account {this.state.daiBalanceAccount / divisorDaoDecimals} DAI < br />
+        balance contract {this.state.daiBalanceContract / divisorDaoDecimals} DAI < br />
 
         <material.Divider>WETH9</material.Divider>
 
         weth9ApprovedInContract {String(this.state.wethApprovedInContract)} <br />
-        allowance {this.state.wethAllowance / divisorWethDecimals} WETH9 <br />
-        balance account {this.state.wethBalanceAccount / divisorWethDecimals} WETH9 <br />
-        balance contract {this.state.wethBalanceContract / divisorWethDecimals} WETH9 <br />
+        allowance {this.state.wethAllowance / divisorWethDecimals} WETH9 < br />
+        balance account {this.state.wethBalanceAccount / divisorWethDecimals} WETH9 < br />
+        balance contract {this.state.wethBalanceContract / divisorWethDecimals} WETH9 < br />
 
-      </React.Fragment>
+      </React.Fragment >
     );
   }
 }
