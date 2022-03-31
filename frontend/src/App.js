@@ -101,6 +101,7 @@ class App extends React.Component {
   };
 
   depositDAIToContract = async () => {
+    console.log('start deposit');
     const accounts = await web3.eth.getAccounts();
     const addressApproveSpend = ApproveSpend.options.address;
     const divisorDaoDecimals = 10 ** this.state.daiDecimals;
@@ -110,6 +111,7 @@ class App extends React.Component {
       from: accounts[0],
       gas: 1000000
     });
+    console.log('finish deposit');
   };
 
   swapAllDaiForWETH9 = async () => {
@@ -148,6 +150,7 @@ class App extends React.Component {
   */
 
   withdrawAllDAI = async () => {
+    console.log('started withdraw');
     const accounts = await web3.eth.getAccounts();
 
     await ApproveSpend.methods.withdrawAllDAI()
