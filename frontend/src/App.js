@@ -3,16 +3,19 @@ import * as material from '@mui/material';
 import web3 from './web3';
 import DAI from './DAI';
 import WETH9 from './WETH9';
-import ApproveSpend from './DeepBalancerPool';
+import DeepBalancerPool from './DeepBalancerPool';
 import { ethers } from "ethers";
 import CssBaseline from '@mui/material/CssBaseline';
 
 
 class App extends React.Component {
 
+  addressDeepBPool = DeepBalancerPool.options.address;
+
   // ToDo - set nested object for DAI and WETH9
   state = {
     accounts: '',
+    addressDeepBPool: '',
     daiBalanceAccount: '',
     daiBalanceContract: '',
     daiAllowance: '',
@@ -36,13 +39,13 @@ class App extends React.Component {
     };
 
     const accounts = await web3.eth.getAccounts();
-    const addressApproveSpend = ApproveSpend.options.address;
 
-    let [daiDecimals, daiAllowance, daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, addressApproveSpend);
-    let [wethDecimals, wethAllowance, wethBalanceAccount, wethBalanceContract] = await this.getInfoFromToken(WETH9, accounts, addressApproveSpend);
-
+    let [daiDecimals, daiAllowance, daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, this.addressDeepBPool);
+    let [wethDecimals, wethAllowance, wethBalanceAccount, wethBalanceContract] = await this.getInfoFromToken(WETH9, accounts, this.addressDeepBPool);
+    const pool = this.addressDeepBPool;
+    
     this.setState({
-      accounts, daiDecimals, daiAllowance, daiBalanceAccount, daiBalanceContract, addressApproveSpend,
+      accounts, daiDecimals, daiAllowance, daiBalanceAccount, daiBalanceContract, pool,
       wethDecimals, wethAllowance, wethBalanceAccount, wethBalanceContract
     });
   }
@@ -64,37 +67,6 @@ class App extends React.Component {
     };
   }
 
-  /*
-  onClickApproveDai = async (e) => {
-    e.preventDefault();
-
-    const accounts = await web3.eth.getAccounts();
-    const addressApproveSpend = ApproveSpend.options.address;
-
-    const amount = ethers.constants.MaxInt256;
-    //const amount = this.outputAmountInDai(this.state.daiNewAllowance);
-    await DAI.methods.approve(addressApproveSpend, amount).send({
-      from: accounts[0],
-      gas: 1000000
-    });
-
-  };
-
-  onClickApproveWeth = async (event) => {
-    event.preventDefault();
-
-    const accounts = await web3.eth.getAccounts();
-    const addressApproveSpend = ApproveSpend.options.address;
-
-    //const amount = ethers.constants.MaxInt256;
-    const amount = this.outputAmountInDai(this.state.wethNewAllowance);
-    await WETH9.methods.approve(addressApproveSpend, amount).send({
-      from: accounts[0],
-      gas: 1000000
-    });
-  };
-  */
-
   outputAmountInDai = (amountInDai) => {
     return ethers.BigNumber.from(amountInDai)
       .mul(ethers.BigNumber.from(10)).pow(this.state.daiDecimals)
@@ -103,8 +75,7 @@ class App extends React.Component {
   depositDAIToContract = async () => {
     console.log('start deposit');
     const accounts = await web3.eth.getAccounts();
-    const addressApproveSpend = ApproveSpend.options.address;
-    const divisorDaoDecimals = 10 ** this.state.daiDecimals;
+    const addressApproveSpend = DeepBalancerPool.options.address;
     const daiToSend = this.state.daiToSend;
 
     await DAI.methods.transferFrom(accounts[0], addressApproveSpend, this.outputAmountInDai(daiToSend)).send({
@@ -112,28 +83,41 @@ class App extends React.Component {
       gas: 1000000
     });
     console.log('finish deposit');
+
+    let [, , daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, addressApproveSpend);
+    this.setState({daiBalanceAccount, daiBalanceContract});
   };
 
   swapAllDaiForWETH9 = async () => {
     console.log('start swap all dai');
     const accounts = await web3.eth.getAccounts();
-    await ApproveSpend.methods.swapAllDAIForWETH9()
+    await DeepBalancerPool.methods.swapAllDAIForWETH9()
       .send({
         from: accounts[0],
         gas: 1000000
       });
     console.log('finished swap all dai');
+    let [, , daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, this.addressDeepBPool);
+    let [, , wethBalanceAccount, wethBalanceContract] = await this.getInfoFromToken(WETH9, accounts, this.addressDeepBPool);
+
+    this.setState({daiBalanceAccount, daiBalanceContract, wethBalanceAccount, wethBalanceContract});
+
   };
 
   swapAllWETH9ForDAI = async () => {
     console.log('start swap all weth9');
     const accounts = await web3.eth.getAccounts();
-    await ApproveSpend.methods.swapAllWETH9ForDAI()
+    await DeepBalancerPool.methods.swapAllWETH9ForDAI()
       .send({
         from: accounts[0],
         gas: 1000000
       });
     console.log('finished swap all weth9');
+
+    let [, , daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, this.addressDeepBPool);
+    let [, , wethBalanceAccount, wethBalanceContract] = await this.getInfoFromToken(WETH9, accounts, this.addressDeepBPool);
+
+    this.setState({daiBalanceAccount, daiBalanceContract, wethBalanceAccount, wethBalanceContract});
   };
 
   /*
@@ -153,7 +137,7 @@ class App extends React.Component {
     console.log('started withdraw');
     const accounts = await web3.eth.getAccounts();
 
-    await ApproveSpend.methods.withdrawAllDAI()
+    await DeepBalancerPool.methods.withdrawAllDAI()
       .send({
         from: accounts[0],
         gas: 1000000

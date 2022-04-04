@@ -44,7 +44,7 @@ contract DeepBalancerPool is Pausable, ReentrancyGuard, Ownable {
         // Frontend can call function directly on ERC20 contract
         ERC20(DAI).transferFrom(msg.sender, address(this), amount);
     }
-
+    /*
     function approveDAISwap(uint256 amountIn) external {
         // need to be called only once
         // Approve the router to spend DAI.
@@ -56,6 +56,7 @@ contract DeepBalancerPool is Pausable, ReentrancyGuard, Ownable {
         // Approve the router to spend DAI.
         TransferHelper.safeApprove(WETH9, address(swapRouter), amountIn);
     }
+    */
 
     function withdrawAllDAI() onlyOwner external {
         withdrawAll(DAI);
