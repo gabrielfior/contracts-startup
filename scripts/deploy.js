@@ -19,7 +19,7 @@ async function main() {
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const Token = await ethers.getContractFactory("ApproveSpend");
+  const Token = await ethers.getContractFactory("DeepBalancerPool");
   const token = await Token.deploy();
   await token.deployed();
 
@@ -43,10 +43,10 @@ function saveFrontendFiles(token) {
     JSON.stringify({ address: token.address }, undefined, 2)
   );
 
-  const TokenArtifact = artifacts.readArtifactSync("ApproveSpend");
+  const TokenArtifact = artifacts.readArtifactSync("DeepBalancerPool");
 
   fs.writeFileSync(
-    contractsDir + "/ApproveSpend.json",
+    contractsDir + "/DeepBalancerPool.json",
     JSON.stringify(TokenArtifact, null, 2)
   );
 }

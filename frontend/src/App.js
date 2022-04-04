@@ -3,7 +3,7 @@ import * as material from '@mui/material';
 import web3 from './web3';
 import DAI from './DAI';
 import WETH9 from './WETH9';
-import ApproveSpend from './ApproveSpend';
+import ApproveSpend from './DeepBalancerPool';
 import { ethers } from "ethers";
 import CssBaseline from '@mui/material/CssBaseline';
 

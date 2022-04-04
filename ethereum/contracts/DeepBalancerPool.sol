@@ -7,19 +7,27 @@ pragma solidity ^0.8.0;
 // We import this library to be able to use console.log
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
 
+//import { SafeCast } from "@openzeppelin/contracts/utils/SafeCast.sol";
+//import { SafeMath } from "@openzeppelin/contracts/math/SafeMath.sol";
+//import { SignedSafeMath } from "@openzeppelin/contracts/math/SignedSafeMath.sol";
+
+// inspired by SetToken.sol (0xeF72D3278dC3Eba6Dc2614965308d1435FFd748a)
+
 // This is the main building block for smart contracts.
-contract ApproveSpend {
+contract DeepBalancerPool is Pausable, ReentrancyGuard, Ownable {
+
+
     constructor() {
         address SWAP_ROUTER = 0xE592427A0AEce92De3Edee1F18E0157C05861564; //rinkeby
         swapRouter = ISwapRouter(SWAP_ROUTER);
-        owner = msg.sender;
     }
-
-    address public owner;
 
     // A mapping is a key/value map. Here we store each account balance.
     mapping(address => uint256) balances;
@@ -49,17 +57,16 @@ contract ApproveSpend {
         TransferHelper.safeApprove(WETH9, address(swapRouter), amountIn);
     }
 
-    function withdrawAllDAI() external {
-        uint256 balanceContractInDai = ERC20(DAI).balanceOf(address(this));
-        TransferHelper.safeTransferFrom(
-            DAI,
-            address(this),
-            msg.sender,
-            balanceContractInDai
-        );
+    function withdrawAllDAI() onlyOwner external {
+        withdrawAll(DAI);
     }
 
-    function withdrawAll(address erc20Token) external {
+    function withdrawAllWETH9() onlyOwner external {
+        withdrawAll(WETH9);
+    }
+
+
+    function withdrawAll(address erc20Token) private {
         ERC20 Token = ERC20(erc20Token);
         uint256 balanceToken = Token.balanceOf(address(this));
 
@@ -71,12 +78,12 @@ contract ApproveSpend {
         );
     }
 
-    function swapAllDAIForWETH9() external returns (uint256 amountOut) {
+    function swapAllDAIForWETH9() external whenNotPaused nonReentrant returns (uint256 amountOut) {
         // we exchange all DAI from inside the contract
         amountOut = totalSwap(DAI, WETH9);
     }
 
-    function swapAllWETH9ForDAI() external returns (uint256 amountOut) {
+    function swapAllWETH9ForDAI() external whenNotPaused nonReentrant returns (uint256 amountOut) {
         // we exchange all DAI from inside the contract
         amountOut = totalSwap(WETH9, DAI);
     }
@@ -108,47 +115,5 @@ contract ApproveSpend {
         // The call to `exactInputSingle` executes the swap.
         amountOut = swapRouter.exactInputSingle(params);
         return amountOut;
-    }
-
-    function swapExactInputSingle(uint256 amountIn)
-        external
-        returns (uint256 amountOut)
-    {
-        // msg.sender must approve this contract
-
-        // Transfer the specified amount of DAI to this contract.
-        TransferHelper.safeTransferFrom(
-            DAI,
-            msg.sender,
-            address(this),
-            amountIn
-        );
-
-        // Approve the router to spend DAI.
-        TransferHelper.safeApprove(DAI, address(swapRouter), amountIn);
-
-        // Naively set amountOutMinimum to 0. In production, use an oracle or other data source to choose a safer value for amountOutMinimum.
-        // We also set the sqrtPriceLimitx96 to be 0 to ensure we swap our exact input amount.
-        ISwapRouter.ExactInputSingleParams memory params = ISwapRouter
-            .ExactInputSingleParams({
-                tokenIn: DAI,
-                tokenOut: WETH9,
-                fee: poolFee,
-                recipient: msg.sender,
-                deadline: 2000000000,
-                amountIn: amountIn,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
-            });
-
-        // The call to `exactInputSingle` executes the swap.
-        amountOut = swapRouter.exactInputSingle(params);
-    }
-
-    function rebalance() public {
-        require(msg.sender == owner, "not owner");
-        //function rebalance(weth pct, btc pct, usd pct){
-        // ToDo - External script calls this function every hour or so.
-        require(0 == 1, "Not implemented yet");
     }
 }
