@@ -23,8 +23,10 @@ contract DeepBalancerPool is Pausable, ReentrancyGuard, Ownable {
         address dai_address,
         address weth9_address,
         address wbtc_address,
-        address swap_router_address
+        address swap_router_address,
+        uint token_price
     ) {
+        console.log("Entered constructor");
         swapRouter = ISwapRouter(swap_router_address);
         DAI = dai_address;
         WBTC = wbtc_address;
@@ -34,7 +36,7 @@ contract DeepBalancerPool is Pausable, ReentrancyGuard, Ownable {
         prices[dai_address] = 1;
         prices[weth9_address] = 3000;
 
-        tokenPrice = 10 * 10**18; // in units of 10**18
+        tokenPrice = token_price; // in units of 10**18
     }
 
     address[] public tokenHolders;
@@ -94,10 +96,12 @@ contract DeepBalancerPool is Pausable, ReentrancyGuard, Ownable {
         
         // New value was not deposited yet. We do internal operations before calling external contract.
         ERC20 depositedToken = ERC20(tokenAddress);
+        console.log('erc20 contract name', depositedToken.name(), address(depositedToken));
 
         // make sure allowance is checked
         uint allowanceForContract = depositedToken.allowance(msg.sender, address(this));
-        require(allowanceForContract > tokenQuantity, "Allowance not properly set");
+        console.log('Allowance', allowanceForContract);
+        require(allowanceForContract >= tokenQuantity, "Allowance not properly set");
 
         refreshPrices();
         updateTotalWealthInUsdAndTokenPrice();
@@ -116,9 +120,8 @@ contract DeepBalancerPool is Pausable, ReentrancyGuard, Ownable {
         require(transferSuccess, 'Transfer of deposit unsuccessful');
     }
 
-    function transferFrom(uint256 amount) public {
-        // Frontend can call function directly on ERC20 contract
-        ERC20(DAI).transferFrom(msg.sender, address(this), amount);
+    function getTokenHolders() view public returns (address[] memory) {
+        return tokenHolders;
     }
 
     function withdrawAllDAI() external onlyOwner {
