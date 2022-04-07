@@ -19,10 +19,10 @@ module.exports = {
     }
   },
   paths: {
-    sources: "./ethereum/contracts",
-    tests: "./ethereum/test",
-    cache: "./ethereum/cache",
-    artifacts: "./ethereum/artifacts"
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
   },
   mocha: {
     timeout: 40000
