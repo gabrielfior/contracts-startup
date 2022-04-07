@@ -4,7 +4,7 @@ import web3 from './web3';
 import DAI from './DAI';
 import WETH9 from './WETH9';
 import DeepBalancerPool from './DeepBalancerPool';
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import CssBaseline from '@mui/material/CssBaseline';
 
 
@@ -26,7 +26,9 @@ class App extends React.Component {
     wethBalanceContract: '',
     wethAllowance: '',
     wethNewAllowance: '',
-    wethDecimals: ''
+    wethDecimals: '',
+    wethToSend: '',
+    totalWealthUSD: ''
   };
 
   async componentDidMount() {
@@ -42,11 +44,17 @@ class App extends React.Component {
 
     let [daiDecimals, daiAllowance, daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, this.addressDeepBPool);
     let [wethDecimals, wethAllowance, wethBalanceAccount, wethBalanceContract] = await this.getInfoFromToken(WETH9, accounts, this.addressDeepBPool);
-    const pool = this.addressDeepBPool;
-    
+    let addressDeepBPool = this.addressDeepBPool;
+
+    let totalWealthUSD = await DeepBalancerPool.methods.totalWealthUSD().call();
+    console.log('totalWealthUSD', totalWealthUSD);
+
+    console.log('price DAI', await DeepBalancerPool.methods.prices(DAI.options.address).call());
+    console.log('price WETH', await DeepBalancerPool.methods.prices(WETH9.options.address).call());
+
     this.setState({
-      accounts, daiDecimals, daiAllowance, daiBalanceAccount, daiBalanceContract, pool,
-      wethDecimals, wethAllowance, wethBalanceAccount, wethBalanceContract
+      accounts, daiDecimals, daiAllowance, daiBalanceAccount, daiBalanceContract,
+      wethDecimals, wethAllowance, wethBalanceAccount, wethBalanceContract, addressDeepBPool, totalWealthUSD
     });
   }
 
@@ -67,25 +75,62 @@ class App extends React.Component {
     };
   }
 
-  outputAmountInDai = (amountInDai) => {
-    return ethers.BigNumber.from(amountInDai)
-      .mul(ethers.BigNumber.from(10)).pow(this.state.daiDecimals)
+  outputAmountInCorrectDecimals = (amount, decimals) => {
+    console.log('amount', amount, 'decimals', decimals);
+    console.log('big number', BigNumber.from(amount));
+    console.log('before');
+    return ethers.BigNumber.from(Number(amount)).mul(ethers.BigNumber.from(10)).pow(decimals);
   };
 
-  depositDAIToContract = async () => {
-    console.log('start deposit');
+  outputAmountInDai = (amount) => this.outputAmountInCorrectDecimals(amount, this.state.daiDecimals);
+  outputAmountInWETH9 = (amount) => this.outputAmountInCorrectDecimals(amount, this.state.wethDecimals);
+
+  depositDAIToContractTest = async () => {
+
+    console.log('started deposit');
     const accounts = await web3.eth.getAccounts();
-    const addressApproveSpend = DeepBalancerPool.options.address;
     const daiToSend = this.state.daiToSend;
 
+    /*
     await DAI.methods.transferFrom(accounts[0], addressApproveSpend, this.outputAmountInDai(daiToSend)).send({
       from: accounts[0],
       gas: 1000000
     });
     console.log('finish deposit');
+    */
 
-    let [, , daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, addressApproveSpend);
-    this.setState({daiBalanceAccount, daiBalanceContract});
+    await DeepBalancerPool.methods.deposit(DAI.options.address, this.outputAmountInDai(daiToSend)).send({
+      from: accounts[0],
+      gas: 1000000
+    });
+    console.log('finished deposit function');
+
+    //let [, , daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, addressApproveSpend);
+    //this.setState({ daiBalanceAccount, daiBalanceContract });
+
+  };
+
+  depositDAIToContract = async () => {
+    this.depositToContract(this.state.daiToSend, DAI, this.state.daiDecimals, 'daiBalanceAccount', 'daiBalanceContract');
+  };
+
+  depositWETH9ToContract = async () => {
+    this.depositToContract(this.state.wethToSend, WETH9, this.state.wethDecimals, 'wethBalanceAccount', 'wethBalanceContract');
+  };
+
+  depositToContract = async (amountToSend, Token, decimals, accountBalanceString, contractBalanceString) => {
+    console.log('start deposit');
+    const accounts = await web3.eth.getAccounts();
+
+    await Token.methods.transferFrom(accounts[0], DeepBalancerPool.options.address, this.outputAmountInCorrectDecimals(amountToSend, decimals))
+      .send({
+        from: accounts[0],
+        gas: 1000000
+      });
+    console.log('finish deposit');
+
+    let [, , balanceAccount, balanceContract] = await this.getInfoFromToken(Token, accounts, DeepBalancerPool.options.address);
+    this.setState({ [accountBalanceString]: balanceAccount, [contractBalanceString]: balanceContract });
   };
 
   swapAllDaiForWETH9 = async () => {
@@ -100,7 +145,7 @@ class App extends React.Component {
     let [, , daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, this.addressDeepBPool);
     let [, , wethBalanceAccount, wethBalanceContract] = await this.getInfoFromToken(WETH9, accounts, this.addressDeepBPool);
 
-    this.setState({daiBalanceAccount, daiBalanceContract, wethBalanceAccount, wethBalanceContract});
+    this.setState({ daiBalanceAccount, daiBalanceContract, wethBalanceAccount, wethBalanceContract });
 
   };
 
@@ -117,7 +162,7 @@ class App extends React.Component {
     let [, , daiBalanceAccount, daiBalanceContract] = await this.getInfoFromToken(DAI, accounts, this.addressDeepBPool);
     let [, , wethBalanceAccount, wethBalanceContract] = await this.getInfoFromToken(WETH9, accounts, this.addressDeepBPool);
 
-    this.setState({daiBalanceAccount, daiBalanceContract, wethBalanceAccount, wethBalanceContract});
+    this.setState({ daiBalanceAccount, daiBalanceContract, wethBalanceAccount, wethBalanceContract });
   };
 
   /*
@@ -172,46 +217,14 @@ class App extends React.Component {
         </ol>
 
 
-        {/*}
-        Approve not used anymore as ETH and DAI directly spent from contract.
-        Contract approves itself.
-
-        <material.TextField id="outlined-basic" label="DAI Allowance (eth units)" variant="outlined"
-          onChange={(e) => this.setState({ daiNewAllowance: e.target.value })}
-          value={this.state.daiNewAllowance}
-        />
-        <LoadingButton loading={this.state.loading} variant="contained"
-          disabled={!this.state.daiNewAllowance}
-          onClick={this.onClickApproveDai}
-        >Approve spend DAI</LoadingButton>
-
-        <br />
-
-
-        <material.TextField id="outlined-basic" variant="outlined"
-          label="WETH Allowance (eth units)"
-          onChange={(e) => this.setState({ wethNewAllowance: e.target.value })}
-          value={this.state.wethNewAllowance}
-        />
-
-        <LoadingButton loading={this.state.loading} variant="contained"
-          disabled={!this.state.wethNewAllowance}
-          onClick={this.onClickApproveWeth}
-        >Approve spend WETH9</LoadingButton>
-
-        <br />
-        {*/}
-
         <material.Box
           component="form"
-          sx={{
-            '& > :not(style)': { m: 0.5, width: '300px', height: '50px' },
-          }}
+          sx={{ '& > :not(style)': { m: 0.5, width: '300px', height: '50px' } }}
           noValidate
           autoComplete="off"
         >
           <material.TextField size='small'
-          id="outlined-basic" label="DAI to send (eth units)" variant="outlined"
+            id="outlined-basic" label="DAI to send (eth units)" variant="outlined"
             onChange={(e) => this.setState({ daiToSend: e.target.value })}
             value={this.state.daiToSend}
           />
@@ -219,6 +232,29 @@ class App extends React.Component {
             disabled={!this.state.daiToSend}
             onClick={this.depositDAIToContract}
           >Transfer DAI to contract</material.Button>
+
+          <material.Button variant="contained" size='small'
+            disabled={!this.state.daiToSend}
+            onClick={this.depositDAIToContractTest}
+          >Deposit function</material.Button>
+
+        </material.Box>
+
+        <material.Box
+          component="form"
+          sx={{ '& > :not(style)': { m: 0.5, width: '300px', height: '50px' } }}
+          noValidate
+          autoComplete="off"
+        >
+          <material.TextField size='small'
+            id="outlined-basic" label="WETH9 to send (eth units)" variant="outlined"
+            onChange={(e) => this.setState({ wethToSend: e.target.value })}
+            value={this.state.wethToSend}
+          />
+          <material.Button variant="contained" size='small'
+            disabled={!this.state.wethToSend}
+            onClick={this.depositWETH9ToContract}
+          >Transfer WETH9 to contract</material.Button>
 
         </material.Box>
 
@@ -258,26 +294,20 @@ class App extends React.Component {
         </material.Box>
 
 
-
-
-
-
-
         <material.Divider>Contracts</material.Divider>
 
         accounts {this.state.accounts} <br />
-        approveSend contract {this.state.addressApproveSpend} <br />
+        approveSend contract {this.state.addressDeepBPool} <br />
+        totalWealthUSD {this.state.totalWealthUSD} <br />
 
         <material.Divider>DAI</material.Divider>
 
-        daiApprovedInContract {String(this.state.daiApprovedInContract)} <br />
         daiAllowance {this.state.daiAllowance / divisorDaoDecimals} DAI < br />
         balance account {this.state.daiBalanceAccount / divisorDaoDecimals} DAI < br />
         balance contract {this.state.daiBalanceContract / divisorDaoDecimals} DAI < br />
 
         <material.Divider>WETH9</material.Divider>
 
-        weth9ApprovedInContract {String(this.state.wethApprovedInContract)} <br />
         allowance {this.state.wethAllowance / divisorWethDecimals} WETH9 < br />
         balance account {this.state.wethBalanceAccount / divisorWethDecimals} WETH9 < br />
         balance contract {this.state.wethBalanceContract / divisorWethDecimals} WETH9 < br />
