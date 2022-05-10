@@ -2,11 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import {BrowserRouter, Routes, Route} from "react-router-dom";
+import Terra from './terra';
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  <BrowserRouter>
+   <Routes>
+      <Route path="/" element={<App />} />
+      <Route path="terra" element={<Terra />} />
+    </Routes>
+  </BrowserRouter>,
   document.getElementById('root')
 );
 

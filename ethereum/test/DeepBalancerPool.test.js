@@ -3,6 +3,13 @@ const { expect } = require("chai");
 const { ethers, web3 } = require("hardhat");
 const { smock } = require('@defi-wonderland/smock');
 
+// for using Waffle
+/*
+const { waffle } = require("hardhat");
+const { deployContract } = waffle;
+https://hardhat.org/plugins/nomiclabs-hardhat-waffle.html
+*/
+
 // allow javascript to handle big numbers
 var chai = require('chai');
 var BN = require('bn.js');

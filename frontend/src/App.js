@@ -6,8 +6,6 @@ import WETH9 from './WETH9';
 import DeepBalancerPool from './DeepBalancerPool';
 import { BigNumber, ethers } from "ethers";
 import CssBaseline from '@mui/material/CssBaseline';
-
-
 class App extends React.Component {
 
   addressDeepBPool = DeepBalancerPool.options.address;
@@ -199,7 +197,7 @@ class App extends React.Component {
     const divisorDaoDecimals = 10 ** this.state.daiDecimals;
     const divisorWethDecimals = 10 ** this.state.wethDecimals;
 
-
+    
     return (
       <React.Fragment>
         <CssBaseline />
@@ -314,6 +312,7 @@ class App extends React.Component {
 
       </React.Fragment >
     );
+    
   }
 }
 
