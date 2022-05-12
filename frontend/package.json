@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@coinbase/wallet-sdk": "^3.0.11",
+    "@curvefi/api": "^1.25.0",
     "@emotion/react": "^11.8.2",
     "@emotion/styled": "^11.8.1",
     "@mui/lab": "^5.0.0-alpha.75",

@@ -1,7 +1,7 @@
 require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-truffle5");
 
-const { alchemyApiKey, mnemonic } = require('./secrets.json');
+const { alchemyApiKey, mnemonic, polygonAlchemyApiKey } = require('./secrets.json');
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -19,9 +19,11 @@ module.exports = {
   },
   networks: {
     hardhat: {
-      chainId: 1,
+      chainId: 137,
+      initialBaseFeePerGas: 0,
+      maxFeePerGas: 0,
       forking: {
-        url: `https://eth-mainnet.alchemyapi.io/v2/${alchemyApiKey}`,
+        url: `https://polygon-mainnet.g.alchemy.com/v2/${polygonAlchemyApiKey}`,
       }
     },
     rinkeby: {

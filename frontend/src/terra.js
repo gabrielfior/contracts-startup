@@ -1,6 +1,6 @@
 import React from 'react';
 import * as material from '@mui/material';
-import { deposit } from './curve';
+import { CurveHandler } from './curve';
 import { ethers, providers } from "ethers";
 import Web3Modal from "web3modal";
 import WalletConnectProvider from "@walletconnect/web3-provider";
@@ -20,13 +20,12 @@ export default function Terra(props) {
   const [provider, setProvider] = useState();
   const [library, setLibrary] = useState();
   const [account, setAccount] = useState();
-  const [signature, setSignature] = useState("");
   const [error, setError] = useState("");
   const [chainId, setChainId] = useState();
-  const [network, setNetwork] = useState(Number.NaN);
-  const [message, setMessage] = useState("");
-  const [signedMessage, setSignedMessage] = useState("");
-  const [verified, setVerified] = useState();
+  const [network, setNetwork] = useState();
+  const [amount, setAmount] = useState(Number.parseInt("1"));
+
+  const curveHandler = new CurveHandler();
 
   const connectWallet = async () => {
     try {
@@ -48,6 +47,14 @@ export default function Terra(props) {
     setNetwork(Number(id));
   };
 
+  const onDeposit = async () => {
+
+    // receive 1 ETH
+    // swap to USDC
+    // deposit USDC to curve pool
+
+    await curveHandler.deposit(amount);
+  };
 
   const switchNetwork = async () => {
     try {
@@ -73,9 +80,6 @@ export default function Terra(props) {
     setAccount();
     setChainId();
     setNetwork("");
-    setMessage("");
-    setSignature("");
-    setVerified(undefined);
   };
 
   const disconnect = async () => {
@@ -160,13 +164,10 @@ export default function Terra(props) {
       </div>
 
 
-
-
-      {/* 
       <material.FormGroup row style={{ "marginTop": "10px" }}>
         <material.TextField variant="outlined" type={'numeric'}
-          value={"test"}
-          onChange={handleChange}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
           InputProps={{
             endAdornment: <material.InputAdornment position="end">USDC</material.InputAdornment>,
           }}
@@ -176,8 +177,8 @@ export default function Terra(props) {
         </material.Button>
 
       </material.FormGroup>
-    */}
-
+          
+          <p>amount {amount}</p>
 
     </div>
   );
